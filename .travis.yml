@@ -1,0 +1,28 @@
+sudo: required
+language: generic
+
+services:
+  - docker
+
+before_install:
+  - docker build -t rajjejosefsson/react-test -f ./client/Dockerfile.dev ./client # remember to move the context as well
+# - docker build myotherproject
+script:
+  - docker run -e CI=true rajjejosefsson/react-test npm run test -- --coverage
+# - docker run myotherproject
+
+after_success:
+  # Build our images
+  - docker build -t rajjejosefsson/multi-client ./client # context to client folder, and will implicit use default Dockerfile
+  - docker build -t rajjejosefsson/multi-nginx ./nginx
+  - docker build -t rajjejosefsson/multi-server ./server
+  - docker build -t rajjejosefsson/multi-worker ./worker
+
+  # Add password into STDIN of docker login
+  - echo  "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+
+  # Push images to Docker Hub
+  - docker push rajjejosefsson/multi-client
+  - docker push rajjejosefsson/multi-nginx
+  - docker push rajjejosefsson/multi-server
+  - docker push rajjejosefsson/multi-worker
