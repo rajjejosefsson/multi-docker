@@ -30,8 +30,8 @@ after_success:
 deploy:
   provider: elasticbeanstalk
   region: "us-east-1"
-  app: "multi-docker"
-  env: "MultiDocker-env"
+  app: "multi-docker2"
+  env: "MultiDocker2-env"
   bucket: "elasticbeanstalk-us-east-1-152918186330" # zipped file into Amazon S3
   bucket_path: "docker-multi" # folder name in s3
   access_key_id: "$AWS_ACCESS_KEY"
