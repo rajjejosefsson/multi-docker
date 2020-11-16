@@ -1,0 +1,48 @@
+version: "3"
+services:
+  postgres:
+    image: "postgres:latest"
+    environment:
+      - POSTGRES_PASSWORD=postgres_password
+  redis:
+    image: "redis:latest"
+  nginx:
+    restart: always
+    build:
+      dockerfile: Dockerfile.dev
+      context: ./nginx
+    ports:
+      - "3050:80" # map our port 3050 (can be whatever) to 80 in nginx
+  api:
+    build:
+      dockerfile: Dockerfile.dev # name of the file
+      context: ./server
+    volumes: # fixes auto rebuild
+      - /app/node_modules # don't try to override this folder, leave it alone
+      - ./server:/app # copy any file inside server into the app folder in container
+    environment:
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - PGUSER=postgres
+      - PGHOST=postgres
+      - PGDATABASE=postgres
+      - PGPASSWORD=postgres_password
+      - PGPORT=5432
+  client:
+    stdin_open: true # fixes React App / client exited with error code 0
+    build:
+      dockerfile: Dockerfile.dev
+      context: ./client
+    volumes:
+      - /app/node_modules # makes this won't get overwritten in our container
+      - ./client:/app # everything within the client folder should be shared with the app folder inside the container
+  worker:
+    build:
+      dockerfile: Dockerfile.dev
+      context: ./worker
+    volumes:
+      - /app/node_modules # makes this won't get overwritten in our container
+      - ./worker:/app # everything within the client folder should be shared with the app folder inside the container
+    environment: # "Calculated Nothing Yet" if not added
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
